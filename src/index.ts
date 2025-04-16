@@ -7,7 +7,7 @@ import BodyParser from "body-parser"
 import cookieParser from "cookie-parser"
 import { browser, auth, permissions, socket, mongodbNotConnected } from "./middlewares"
 import { rateLimit } from "express-rate-limit"
-import { get, post, patch, delete as _delete, total, register, login, refresh, password } from "./routes"
+import { get, post, patch, delete as _delete, count, register, login, refresh, password } from "./routes"
 import mongodb from "./mongodb"
 import { Config, Events, MyRequest } from "./types"
 import currentUser from "./routes/current-user"
@@ -56,7 +56,12 @@ export default class Noonjs {
 
         this.server = http.createServer(this.app);
         this.server.on("error", e => this.emit("error", e))
-        this.io = this.config.io === false ? null : new SocketIOServer(this.server)
+        this.io = this.config.io === false ? null : new SocketIOServer(this.server, {
+            cors: this.config.cors ?? {
+                origin: "*",
+                credentials: true
+            }
+        })
 
         // 🤔
         ModelFactory.schemas = Object.fromEntries(Object.keys(this.config.collections).map(x => {
@@ -158,7 +163,7 @@ export default class Noonjs {
         router.post('/:collection', post)
         router.patch('/:collection', patch)
         router.delete('/:collection', _delete)
-        router.get('/:collection/total', total)
+        router.get('/:collection/count', count)
 
         this.app.use(this.config.base!, router);
 

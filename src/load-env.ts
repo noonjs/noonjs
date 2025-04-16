@@ -7,10 +7,10 @@ export function loadEnv(): Partial<Config> {
         port: process.env.PORT ? +process.env.PORT : undefined,
         mongodb: process.env.MONGODB,
 
-        cors: {
+        cors: process.env.CORS_ORIGIN && process.env.CORS_CREDENTIALS ? {
             origin: process.env.CORS_ORIGIN,
             credentials: process.env.CORS_CREDENTIALS === "true"
-        },
+        } : undefined,
 
         auth: {
             collection: process.env.AUTH_COLLECTION!,

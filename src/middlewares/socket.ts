@@ -16,7 +16,8 @@ export default (io: any) => {
             }
 
             let { io: tos } = extract(permissions, req.config?.collections[req.config?.auth.collection].permissions, method)
-            if (tos === true)
+
+            if (!tos || tos === true)
                 tos = { "*": true }
 
             Object.entries<string[] | boolean>(tos).forEach(([to, projection]) => {
