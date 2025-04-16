@@ -3,7 +3,7 @@ import Noonjs from '../src';
 describe("Noonjs", () => {
     let noonjs: Noonjs;
 
-    beforeEach(() => {
+    beforeAll(() => {
         noonjs = new Noonjs({
             collections: {
                 "users": {
@@ -17,4 +17,8 @@ describe("Noonjs", () => {
     test("Created!", () => {
         expect(noonjs).toBeDefined()
     });
+
+    afterAll(() => {
+        noonjs.stop()
+    })
 })

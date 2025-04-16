@@ -18,6 +18,7 @@ import { loadEnv } from "./load-env"
 import { deepMerge } from "./common"
 import debug from "debug"
 import { logInfo } from "./debug"
+import mongoose from "mongoose"
 /**
  * 
  */
@@ -194,22 +195,34 @@ export default class Noonjs {
 
     /** 🌄 Launch server. */
     start(): void {
-        if (!this.server.listening) {
-            // 💡 make sure user routes came first
-            this.routes()
-            this.server.listen(this.config.port, () => {
-                this.emit("started", this.config.port)
-            })
+        try {
+            if (!this.server.listening) {
+                // 💡 make sure user routes came first
+                this.routes()
+                this.server.listen(this.config.port, () => {
+                    this.emit("started", this.config.port)
+                })
+            }
+        } catch (error) {
+            this.emit("error", error)
         }
     }
 
     /** Shutdown server. */
     stop(): void {
-        if (!this.server.listen)
-            return
+        try {
+            if (mongoose.connection.readyState === 1)
+                mongoose.disconnect()
 
-        this.server.close(() => {
-            this.emit("stopped")
-        })
+            if (this.io)
+                this.io.close()
+
+            if (!!this.server.listen)
+                this.server.close(() => {
+                    this.emit("stopped")
+                })
+        } catch (error) {
+            this.emit("error", error)
+        }
     }
 }

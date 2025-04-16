@@ -20,7 +20,7 @@ export default async (req: MyRequest, res: Response, next: NextFunction) => {
             ip: req.ip || req.headers['x-forwarded-for']
         }) } = req.query
 
-        res.json(await ModelFactory.get(collection).countDocuments(query))
+        res.json({ total: await ModelFactory.get(collection).countDocuments(query) })
     } catch (error) {
         next(error)
     }
