@@ -8,7 +8,7 @@ export default async (req: MyRequest, res: Response, next: NextFunction) => {
     try {
         const collection = req.params.collection
 
-        const { permissions } = req.user ?? {}
+        const permissions = req.user?.permissions ?? ["*"]
 
         let { pick: _pick, omit: _omit } = extract(permissions, req.config?.collections[collection].permissions, "post")
 

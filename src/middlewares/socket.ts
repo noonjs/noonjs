@@ -6,7 +6,7 @@ export default (io: any) => {
     return (req: MyRequest, _: Response, next: NextFunction) => {
         req.send = (doc: any, method: "post" | "patch" | "delete", permissions: any, collection: string) => {
 
-            if (!req.config?.auth?.collection)
+            if (!permissions || !collection)
                 return
 
             const responses = {
@@ -15,7 +15,7 @@ export default (io: any) => {
                 delete: 'deleted'
             }
 
-            let { io: tos } = extract(permissions, req.config?.collections[req.config?.auth.collection].permissions, method)
+            let { io: tos } = extract(permissions, req.config?.collections[collection].permissions, method)
 
             if (!tos || tos === true)
                 tos = { "*": true }
