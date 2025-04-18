@@ -180,3 +180,53 @@ export function deepMerge<T>(base: Partial<T>, ...overrides: Partial<T>[]): Part
 
     return result;
 }
+
+export function decoder(json: any, schema: any): any {
+    if (typeof json !== 'object' || json === null) return json;
+
+    const result: any = Array.isArray(json) ? [] : {};
+
+    for (const key in json) {
+        const value = json[key];
+
+        if (typeof value === 'object' && value !== null) {
+            result[key] = decoder(value, schema);
+        } else {
+            const schemaType = findTypeInSchema(key, schema);
+            result[key] = convertValue(value, schemaType);
+        }
+    }
+
+    return result;
+}
+
+function findTypeInSchema(field: string, schema: any): string | null {
+    if (typeof schema !== 'object' || schema === null) return null;
+
+    if (field in schema && typeof schema[field] === 'object' && 'type' in schema[field]) {
+        return schema[field].type;
+    }
+
+    for (const key in schema) {
+        const nested = schema[key];
+        if (typeof nested === 'object') {
+            const found = findTypeInSchema(field, nested);
+            if (found) return found;
+        }
+    }
+
+    return null;
+}
+
+function convertValue(value: any, type: string | null): any {
+    switch (type) {
+        case 'number':
+            return Number(value);
+        case 'string':
+            return String(value);
+        case 'boolean':
+            return value === 'true' || value === true;
+        default:
+            return value;
+    }
+}

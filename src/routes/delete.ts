@@ -1,7 +1,8 @@
 import { NextFunction, Response } from "express";
 import { MyRequest } from "../types";
-import { extract, replacer } from "../common";
+import { decoder, extract, replacer } from "../common";
 import ModelFactory from "../model-factory";
+import qs from "qs";
 
 export default async (req: MyRequest, res: Response, next: NextFunction) => {
     try {
@@ -14,11 +15,16 @@ export default async (req: MyRequest, res: Response, next: NextFunction) => {
         if (_q === true)
             _q = {}
 
-        let { _id, query = await replacer({ _id, ..._q }, {
+        const { q } = decoder(qs.parse(new URL(req.url!, `http://${req.headers.host}`).searchParams.toString()), req.config?.collections[collection].schema)
+
+        const query = await replacer({
+            ...q,
+            ..._q
+        }, {
             auth: req.user,
             now: Date.now(),
             ip: req.ip || req.headers['x-forwarded-for']
-        }) } = req.params
+        })
 
         const r = await ModelFactory.get(collection).findOneAndDelete(query)
 
