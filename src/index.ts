@@ -7,7 +7,7 @@ import BodyParser from "body-parser"
 import cookieParser from "cookie-parser"
 import { browser, auth, permissions, socket, mongodbNotConnected } from "./middlewares"
 import { rateLimit } from "express-rate-limit"
-import { get, post, patch, delete as _delete, count, register, login, refresh, password } from "./routes"
+import { get, post, patch, delete as _delete, count, register, login, refresh, password, logout } from "./routes"
 import mongodb from "./mongodb"
 import { Config, Events, MyRequest } from "./types"
 import currentUser from "./routes/current-user"
@@ -137,6 +137,7 @@ export default class Noonjs {
             }))
 
         this.app.use(mongodbNotConnected)
+        this.app.use(browser)
         this.app.use((req: MyRequest, _: Response, next: NextFunction) => {
             logInfo(`${req.method} ${req.path} ${JSON.stringify(req.query)} ${!!req.browser ? "browser" : "non-browser"}`)
             if (req.body)
@@ -145,7 +146,6 @@ export default class Noonjs {
             req.config = this.config
             next()
         })
-        this.app.use(browser)
         this.app.use(socket(this.io))
         this.app.use(auth)
         this.app.use(permissions)
@@ -157,6 +157,7 @@ export default class Noonjs {
         router.get('/auth', currentUser)
         router.post('/auth/register', register)
         router.post('/auth/login', login)
+        router.get('/auth/logout', logout)
         router.post('/auth/refresh', refresh)
         router.patch('/auth/password', password)
 
