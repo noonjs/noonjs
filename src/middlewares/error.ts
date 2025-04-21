@@ -8,22 +8,22 @@ export default (emit: (error: any) => void) => {
         logError(err)
         emit(err.message)
 
+        const statusCode = err.status || err.statusCode || 500;
+
         if (req.config?.error === false) {
-            res.status(500).json({ error: false })
+            res.status(statusCode).json({ error: false })
             return
         }
 
         if (!req.config?.error) {
-            res.status(500).json({ error: err.message })
+            res.status(statusCode).json({ error: err.message })
             return
         }
 
         if (typeof req.config?.error === "string") {
-            res.status(500).json({ error: req.config?.error })
+            res.status(statusCode).json({ error: req.config?.error })
             return
         }
-
-        const statusCode = err.status || err.statusCode || 500; // Default to 500 if not provided
 
         res.status(statusCode).json({ error: req.config?.error[err] ?? req.config?.error[statusCode] ?? null })
     }

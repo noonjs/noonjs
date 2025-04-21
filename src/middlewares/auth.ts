@@ -22,7 +22,7 @@ export default (req: MyRequest, res: Response, next: NextFunction) => {
 
     } catch (error: any) {
         if (error.name === "TokenExpiredError")
-            next({ message: "token_expired" })
+            next({ message: "token_expired", status: 401 })
         else
             next(error)
     }
