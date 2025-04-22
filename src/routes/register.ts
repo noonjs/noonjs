@@ -23,7 +23,7 @@ export default async (req: MyRequest, res: Response, next: NextFunction): Promis
                     httpOnly: true,
                     sameSite: "none",
                     secure: true,
-                    maxAge: req.config.auth.refresh
+                    maxAge: (req.config.auth.refresh ?? 0) * 1000 // maxAge in milliseconds
                 });
 
             res.json({ access })
