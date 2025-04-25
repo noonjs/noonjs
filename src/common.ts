@@ -151,13 +151,6 @@ export function extract(permissions: string[], json: {
     return false;
 }
 
-export function getTokens(user: any, config: any) {
-    const { _id, permissions } = user
-    const access = sign({ _id, permissions }, config.auth.secret, { expiresIn: config.auth.access })
-    const refresh = config.auth.refresh && sign({ _id }, config.auth.refreshsecret ?? config.auth.secret, { expiresIn: config.auth.refresh })
-    return { access, refresh }
-}
-
 export function deepMerge<T>(base: Partial<T>, ...overrides: Partial<T>[]): Partial<T> {
     const result: any = { ...base };
 
