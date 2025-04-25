@@ -21,8 +21,6 @@ import { logInfo } from "./debug"
 import mongoose from "mongoose"
 import signAndSetCookie from "./handlers/sign-and-set-cookie"
 
-export { MyRequest }
-
 export default class Noonjs {
     readonly config: Config
     private ev: EventEmitter
