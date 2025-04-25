@@ -1,37 +1,33 @@
 import { NextFunction, Response } from "express";
 import { MyRequest } from "../types";
 import ModelFactory from "../model-factory";
-import { getTokens } from "../common";
 
-export default async (req: MyRequest, res: Response, next: NextFunction): Promise<any> => {
-    try {
-        if (!req.config?.auth?.collection)
-            throw new Error("no_auth_collection")
+export default (logic?: (req: MyRequest) => any) => {
 
-        const user = await ModelFactory.get(req.config.auth.collection).create(req.body)
-        await user.save()
+    return async (req: MyRequest, res: Response, next: NextFunction): Promise<any> => {
+        try {
+            if (!logic) {
 
-        const { access, refresh } = getTokens(user, req.config)
+                if (!req.config?.auth?.collection)
+                    throw new Error("no_auth_collection")
 
-        if (!access)
-            throw new Error("no_access_generated")
+                const user = await ModelFactory.get(req.config.auth.collection).create(req.body)
+                await user.save()
 
-        if (req.browser) {
+                const { _id, permissions } = user
 
-            if (refresh)
-                res.cookie('refresh', refresh, {
-                    httpOnly: true,
-                    sameSite: "none",
-                    secure: true,
-                    maxAge: (req.config.auth.refresh ?? 0) * 1000 // maxAge in milliseconds
-                });
+                res.locals.token = {
+                    access: { _id, permissions },
+                    refresh: { _id }
+                }
+            } else {
+                res.locals.token = await logic(req)
+            }
 
-            res.json({ access })
+            next()
+
+        } catch (error) {
+            next(error)
         }
-        else {
-            res.json({ access, refresh })
-        }
-    } catch (error) {
-        next(error)
     }
 }

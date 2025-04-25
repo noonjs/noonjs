@@ -1,7 +1,6 @@
 import { NextFunction, Response } from "express";
 import { MyRequest } from "../types";
 import ModelFactory from "../model-factory";
-import { getTokens } from "../common";
 import { verify } from "jsonwebtoken";
 
 export default async (req: MyRequest, res: Response, next: NextFunction): Promise<any> => {
@@ -23,9 +22,14 @@ export default async (req: MyRequest, res: Response, next: NextFunction): Promis
             throw new Error("no_refresh_token")
 
         const user = await ModelFactory.get(req.config.auth.collection).findOne({ _id })
-        const { access } = getTokens(user, req.config)
-        res.json({ access })
 
+        const { permissions } = user
+
+        res.locals.token = {
+            access: { _id, permissions }
+        }
+
+        next()
     } catch (error) {
         next(error)
     }

@@ -3,31 +3,39 @@ import { MyRequest } from "../types";
 import { extract } from "../common";
 import ModelFactory from "../model-factory";
 
-export default async (req: MyRequest, res: Response, next: NextFunction) => {
-    try {
-        if (!req.config?.auth?.collection)
-            throw new Error("no_auth_collection")
+export default (logic?: (req: MyRequest) => any) => {
+    return async (req: MyRequest, res: Response, next: NextFunction) => {
+        try {
+            if (logic) {
+                res.json(await logic(req))
+                return
+            }
 
-        if (!req.user)
-            throw new Error("no_token")
+            if (!req.config?.auth?.collection)
+                throw new Error("no_auth_collection")
 
-        const { _id, permissions } = req.user
+            if (!req.user)
+                throw new Error("no_token")
 
-        if (!_id)
-            throw new Error("no_id")
+            const { _id, permissions } = req.user
 
-        let { project } = extract(permissions, req.config.collections[req.config.auth.collection].permissions, "get")
+            if (!_id)
+                throw new Error("no_id")
 
-        if (project === true)
-            project = []
+            let { project } = extract(permissions, req.config.collections[req.config.auth.collection].permissions, "get")
 
-        const user = await ModelFactory.get(req.config.auth.collection).findOne({ _id }, project)
+            if (project === true)
+                project = []
 
-        if (!user)
-            throw new Error("no_user")
+            const user = await ModelFactory.get(req.config.auth.collection).findOne({ _id }, project)
 
-        res.json(user)
-    } catch (error) {
-        next(error)
+            if (!user)
+                throw new Error("no_user")
+
+            res.json(user)
+
+        } catch (error) {
+            next(error)
+        }
     }
 }

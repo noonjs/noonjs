@@ -8,6 +8,9 @@ export default async (req: MyRequest, res: Response, next: NextFunction) => {
         if (!req.config?.auth?.collection)
             throw new Error("no_auth_collection")
 
+        if (!req.config?.auth?.password)
+            throw new Error("no_auth_password_field")
+
         if (!req.user)
             throw new Error("no_token")
 

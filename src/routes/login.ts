@@ -1,49 +1,46 @@
 import { NextFunction, Response } from "express";
 import { MyRequest } from "../types";
 import ModelFactory from "../model-factory";
-import { getTokens } from "../common";
 import * as bcrypt from "bcrypt"
 
-export default async (req: MyRequest, res: Response, next: NextFunction) => {
-    try {
-        if (!req.config?.auth?.collection)
-            throw new Error("no_auth_collection")
+export default (logic?: (req: MyRequest) => any) => {
+    return async (req: MyRequest, res: Response, next: NextFunction) => {
+        try {
+            if (!logic) {
+                if (!req.config?.auth?.collection)
+                    throw new Error("no_auth_collection")
 
-        const u = req.body[req.config.auth.username]
-        const p = req.body[req.config.auth.password]
+                if (!req.config?.auth?.username || !req.config?.auth?.password)
+                    throw new Error("no_auth_username_password_field")
 
-        if (!u || !p)
-            throw new Error("bad_input")
+                const u = req.body[req.config.auth.username]
+                const p = req.body[req.config.auth.password]
 
-        const user = await ModelFactory.get(req.config.auth.collection).findOne({ [req.config.auth.username]: u })
+                if (!u || !p)
+                    throw new Error("bad_input")
 
-        if (!user)
-            throw new Error("no_user")
+                const user = await ModelFactory.get(req.config.auth.collection).findOne({ [req.config.auth.username]: u })
 
-        if (!bcrypt.compareSync(p, user[req.config.auth.password]))
-            throw new Error("wrong_password")
+                if (!user)
+                    throw new Error("no_user")
 
-        const { access, refresh } = getTokens(user, req.config)
+                if (!bcrypt.compareSync(p, user[req.config.auth.password]))
+                    throw new Error("wrong_password")
 
-        if (!access)
-            throw new Error("no_access_generated")
+                const { _id, permissions } = user
 
-        if (req.browser) {
-            if (refresh)
-                res.cookie('refresh', refresh, {
-                    httpOnly: true,
-                    sameSite: "none",
-                    secure: true,
-                    maxAge: (req.config.auth.refresh ?? 0) * 1000 // maxAge in milliseconds
-                });
+                res.locals.token = {
+                    access: { _id, permissions },
+                    refresh: { _id }
+                }
+            } else {
+                res.locals.token = await logic(req)
+            }
 
-            res.json({ access })
+            next()
+
+        } catch (error) {
+            next(error)
         }
-        else {
-            res.json({ access, refresh })
-        }
-
-    } catch (error) {
-        next(error)
     }
 }

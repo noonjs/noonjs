@@ -19,26 +19,32 @@ import { deepMerge } from "./common"
 import debug from "debug"
 import { logInfo } from "./debug"
 import mongoose from "mongoose"
-/**
- * 
- */
+import signAndSetCookie from "./handlers/sign-and-set-cookie"
+
+export { MyRequest }
+
 export default class Noonjs {
-    private config: Config
+    readonly config: Config
     private ev: EventEmitter
     private app: Express
     private server: Server
     private io: SocketIOServer | null
+    private _auth: any
 
     constructor(config: Config) {
         if (process.env.NODE_ENV !== 'production')
             require('dotenv').config();
 
         const envConfig = loadEnv()
+
         this.config = deepMerge({
             debug: "",
             base: "/",
             port: 4000
         }, config, envConfig) as Config
+
+        if (this.config.auth && !this.config.auth.access)
+            this.config.auth.access = 900 // default 15 minutes
 
         debug.enable(this.config.debug!)
 
@@ -154,11 +160,11 @@ export default class Noonjs {
     private routes(): void {
         const router = express.Router()
 
-        router.get('/auth', currentUser)
-        router.post('/auth/register', register)
-        router.post('/auth/login', login)
+        router.get('/auth', currentUser(this._auth?.get))
+        router.post('/auth/register', register(this._auth?.register), signAndSetCookie)
+        router.post('/auth/login', login(this._auth?.login), signAndSetCookie)
         router.get('/auth/logout', logout)
-        router.post('/auth/refresh', refresh)
+        router.post('/auth/refresh', refresh, signAndSetCookie)
         router.patch('/auth/password', password)
 
         router.get('/:collection', get)
@@ -192,6 +198,14 @@ export default class Noonjs {
     /** 📨 Dispatch a custom Socket.IO message to clients. */
     public send(msg: any, to = "*") {
         return this.io?.in(to).emit(msg)
+    }
+
+    public auth({ get, register, login }: {
+        get?: (req: MyRequest) => any | Promise<any>,
+        register?: (req: MyRequest) => { access: any, refresh?: any } | Promise<{ access: any, refresh?: any }>,
+        login?: (req: MyRequest) => { access: any, refresh?: any } | Promise<{ access: any, refresh?: any }>
+    }) {
+        this._auth = { ...this._auth, get, register, login }
     }
 
     /** 🌄 Launch server. */
