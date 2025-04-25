@@ -12,6 +12,7 @@ const typeMapping: Record<string, any> = {
   number: Number,
   boolean: Boolean,
   date: Date,
+  object: Object,
   hash: String
 }
 
@@ -27,11 +28,14 @@ export default class ModelFactory {
       throw new Error("no_collection")
 
     const schemaDefinition: Record<string, any> = {};
-    Object.entries(this.schemas[name] as [{ type: string }]).forEach(([field, fieldData]) => {
+    Object.entries(this.schemas[name] as [{ type: string, match?: any }]).forEach(([field, fieldData]) => {
       schemaDefinition[field] = {
         ...fieldData,
         type: typeMapping[fieldData.type.toLowerCase()] || String
       };
+
+      if (fieldData.match)
+        schemaDefinition[field].match = [new RegExp(fieldData.match), "not_match"]
     });
 
     const _schema = new Schema(schemaDefinition, { timestamps: true });
