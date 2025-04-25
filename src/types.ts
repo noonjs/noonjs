@@ -22,8 +22,8 @@ export type Config = {
         collection: string
         secret: string
         refreshsecret?: string
-        username: string
-        password: string
+        username?: string
+        password?: string
         access?: number
         refresh?: number
     }
