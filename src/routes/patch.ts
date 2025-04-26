@@ -38,7 +38,7 @@ export default async (req: MyRequest, res: Response, next: NextFunction) => {
         if (_omit)
             body = omit(body, _omit)
 
-        const doc = await ModelFactory.get(collection).findOneAndUpdate(query, body, { new: true, projection: project });
+        const doc = await ModelFactory.get(collection).findOneAndUpdate(query, body, { new: true, projection: project, runValidators: true  });
         req.send?.(doc, "patch", permissions, collection)
         res.json(doc);
 
