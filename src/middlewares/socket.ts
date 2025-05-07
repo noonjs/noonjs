@@ -1,6 +1,7 @@
 import { NextFunction, Response } from "express"
 import { MyRequest } from "../types"
 import { extract, pick } from "../common"
+import { isObjectIdOrHexString } from "mongoose"
 
 export default (io: any) => {
     return (req: MyRequest, _: Response, next: NextFunction) => {
@@ -28,6 +29,9 @@ export default (io: any) => {
                 if (to.includes("$.")) {
                     const [_, field] = to.split(".")
                     to = doc[field]
+
+                    if (isObjectIdOrHexString(to))
+                        to = to.toString()
                 }
 
                 io.in(to).emit('collection', responses[method], collection, (projection as []).length > 0 ? pick(doc, projection as []) : doc, to);
