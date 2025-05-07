@@ -21,6 +21,8 @@ import { logInfo } from "./debug"
 import mongoose from "mongoose"
 import signAndSetCookie from "./handlers/sign-and-set-cookie"
 
+export type { MyRequest }
+
 export default class Noonjs {
     readonly config: Config
     private ev: EventEmitter
@@ -177,7 +179,7 @@ export default class Noonjs {
     }
 
     /** 🛣️ Create a custom endpoint or middleware. */
-    public use(pathOrMiddleware: string | ((req: Request, res: Response, next: NextFunction) => void), maybeRouter?: Router): void {
+    public use(pathOrMiddleware: string | ((req: MyRequest, res: Response, next: NextFunction) => void), maybeRouter?: Router): void {
         try {
             if (typeof pathOrMiddleware === 'string' && maybeRouter)
                 this.app.use(pathOrMiddleware, maybeRouter)
