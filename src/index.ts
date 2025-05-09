@@ -196,8 +196,9 @@ export default class Noonjs {
     }
 
     /** 📨 Dispatch a custom Socket.IO message to clients. */
-    public send(msg: any, to = "*") {
-        return this.io?.in(to).emit(msg)
+    public send(msg: any, options?: { to?: string, ev?: string }) {
+        const { to = "*", ev = "default" } = options ?? {}
+        return this.io?.in(to).emit(ev, msg)
     }
 
     public auth({ get, register, login }: {
