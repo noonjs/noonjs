@@ -39,7 +39,7 @@ export async function replacer(value: any, params: any) {
             case "function":
                 return await params[a](b);
             default:
-                return params[a];
+                return params[a] ?? null;
         }
     } else if (typeof value === 'object' && value !== null) {
         for (const key in value) {
