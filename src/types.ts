@@ -33,7 +33,7 @@ export type Config = {
             permissions: any
         }
     }
-    io?: false
+    io?: boolean
     limiter?: {
         window: number
         limit: number
