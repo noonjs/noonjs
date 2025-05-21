@@ -1,5 +1,3 @@
-import { sign } from "jsonwebtoken";
-
 export function pick<T extends object, K extends keyof T>(obj: T, props: K[]): Pick<T, K> {
     return Object.fromEntries(props.filter(prop => prop in obj).map(prop => [prop, obj[prop]])) as Pick<T, K>;
 }
@@ -222,4 +220,18 @@ function convertValue(value: any, type: string | null): any {
         default:
             return value;
     }
+}
+
+export function deepIntParse(input: any): any {
+    if (input && typeof input === 'object') {
+        for (const key of Object.keys(input)) {
+            const value = input[key];
+            if (value !== null && typeof value === 'object') {
+                deepIntParse(value);
+            } else if (typeof value === 'string' && /^-?\d+$/.test(value)) {
+                input[key] = parseInt(value, 10);
+            }
+        }
+    }
+    return input;
 }
