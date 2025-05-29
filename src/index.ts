@@ -126,7 +126,7 @@ export default class Noonjs {
     private middlewares(): void {
         this.app.use(BodyParser.json({
             type(req) {
-                return true;
+                return !req.headers['content-type']?.includes("multipart/form-data")
             }
         }))
 
